@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فَيْض | FAYD - نموذج أولي لإدارة الفائض والهدر الغذائي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: '#18334A', forest: '#245B45', sage: '#A8BFA5', beige: '#F1E8D8',
+                        offwhite: '#FAF9F5', emeraldBrand: '#16856B', amberBrand: '#D99A32'
+                    },
+                    fontFamily: { sans: ['Cairo', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+        body { font-family: 'Cairo', sans-serif; background-color: #FAF9F5; color: #18334A; overflow-x: hidden; }
+        input, select, button { font-family: inherit; }
+        .field { width: 100%; background: #fff; border: 1px solid rgba(168,191,165,.6); border-radius: .5rem; padding: .65rem .75rem; font-size: 16px; font-weight: 700; color: #18334A; }
+        .field:focus { outline: none; border-color: #245B45; }
+        .btn { min-height: 44px; padding: .5rem 1rem; border-radius: .6rem; font-weight: 700; font-size: .8rem; transition: background .15s; }
+        .btn-primary { background: #245B45; color: #fff; } .btn-primary:hover { background: #18334A; }
+        .btn-ghost { background: #F1E8D8; color: #18334A; border: 1px solid rgba(168,191,165,.7); } .btn-ghost:hover { background: #e8dcc5; }
+        .canvas-box { position: relative; height: 16rem; width: 100%; }
+        #assistant-box { max-height: calc(100dvh - 7rem); }
+        .num { font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body class="bg-offwhite text-navy min-h-screen flex flex-col">
+
+    <header class="bg-navy text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="bg-forest p-2 rounded-lg text-white font-black text-xl shadow-inner shrink-0">فَيْض</div>
+                <div class="min-w-0">
+                    <h1 class="text-lg font-bold tracking-tight">فَيْض | FAYD</h1>
+                    <p class="text-xs text-sage truncate">لوحة نموذج أولي لإدارة الفائض والهدر الغذائي</p>
+                </div>
+            </div>
+            <nav class="hidden md:flex items-center gap-5 text-sm font-semibold" aria-label="التنقل الرئيسي">
+                <a href="#dashboard" class="hover:text-sage transition">لوحة القيادة</a>
+                <a href="#daily-log" class="hover:text-sage transition">السجل اليومي</a>
+                <a href="#forecasting" class="hover:text-sage transition">التنبؤ والتحضير</a>
+                <a href="#decisions" class="hover:text-sage transition">محاكاة القرارات</a>
+                <a href="#matching" class="hover:text-sage transition">التبرع والمطابقة</a>
+                <a href="#simulator" class="hover:text-sage transition">مقارنة السيناريوهات</a>
+            </nav>
+            <div class="flex items-center gap-2 shrink-0">
+                <div class="hidden sm:flex bg-amberBrand/20 border border-amberBrand/50 text-amberBrand text-xs px-3 py-1.5 rounded-lg items-center gap-1.5 font-bold">
+                    <i class="fa-solid fa-flask"></i><span>بيانات محاكاة</span>
+                </div>
+                <button id="menu-toggle" class="md:hidden w-11 h-11 rounded-lg bg-white/10 flex items-center justify-center" aria-label="فتح القائمة" aria-expanded="false" aria-controls="mobile-nav">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+        <nav id="mobile-nav" class="hidden md:hidden border-t border-white/10 bg-navy px-4 py-2 text-sm font-semibold" aria-label="القائمة">
+            <a href="#dashboard" class="block py-3 border-b border-white/5">لوحة القيادة</a>
+            <a href="#daily-log" class="block py-3 border-b border-white/5">السجل اليومي</a>
+            <a href="#forecasting" class="block py-3 border-b border-white/5">التنبؤ والتحضير</a>
+            <a href="#decisions" class="block py-3 border-b border-white/5">محاكاة القرارات</a>
+            <a href="#matching" class="block py-3 border-b border-white/5">التبرع والمطابقة</a>
+            <a href="#simulator" class="block py-3">مقارنة السيناريوهات</a>
+        </nav>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-6 w-full space-y-8">
+
+        <div role="note" class="bg-amberBrand/15 border border-amberBrand/50 text-navy rounded-xl px-4 py-3 text-sm font-bold flex items-start gap-3">
+            <i class="fa-solid fa-triangle-exclamation text-amberBrand mt-1"></i>
+            <span>نموذج أولي ببيانات محاكاة؛ النتائج تقديرية وليست نتائج ميدانية مثبتة.</span>
+        </div>
+
+        <section class="bg-gradient-to-l from-navy to-forest text-white rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+            <div class="absolute -left-10 -bottom-10 opacity-10 text-9xl"><i class="fa-solid fa-utensils"></i></div>
+            <div class="max-w-3xl relative z-10">
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <span class="bg-sage/20 text-sage text-xs px-3 py-1 rounded-full font-bold">مطعم افتراضي — صنف واحد: كبسة دجاج</span>
+                    <span class="text-xs text-gray-300">| بيانات محاكاة</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-black mb-3">إدارة الفائض الغذائي وخفض الهدر</h2>
+                <p class="text-sage text-sm md:text-base leading-relaxed mb-6">
+‎                    لوحة تربط الكمية المحضّرة بالطلب المتوقع والمبيعات الفعلية، وتوضح مسار الفائض بين البيع المخفّض والتبرع الغذائي والهدر، مع أثر مالي تقديري وفق نموذج محاسبي مبسّط.
+                </p>
+                <div class="flex flex-wrap gap-3 text-xs font-semibold">
+                    <div class="bg-white/10 px-4 py-2 rounded-lg flex items-center gap-2 border border-white/10">
+                        <i class="fa-solid fa-calendar-alt text-sage"></i><span>فترة البيانات: 1 - 14 أكتوبر 2026</span>
+                    </div>
+                    <div class="bg-white/10 px-4 py-2 rounded-lg flex items-center gap-2 border border-white/10">
+                        <i class="fa-solid fa-chart-pie text-sage"></i><span id="hero-rescue">نسبة الإنقاذ للفترة: —</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+‎        <!-- نتيجة مطابقة البيانات مع ملخص الملف -->
+        <section id="reconcile-box" class="hidden rounded-xl border px-4 py-3 text-sm" role="alert" aria-live="polite"></section>
+
+        <section class="bg-white p-4 rounded-xl shadow-sm border border-sage/30 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                <i class="fa-solid fa-filter text-forest text-lg"></i>
+                <label for="period-selector" class="font-bold text-sm">اختر فترة العرض:</label>
+                <select id="period-selector" class="bg-offwhite border border-sage/50 rounded-lg px-3 py-2 min-h-[44px] text-base sm:text-sm font-semibold focus:outline-none focus:border-forest text-navy w-full sm:w-auto"></select>
+            </div>
+            <div id="active-period-label" class="text-sm text-forest font-bold bg-beige px-3 py-2 rounded-lg border border-sage/40" aria-live="polite"></div>
+        </section>
+
+        <section id="dashboard" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                    <div class="flex justify-between items-start mb-2"><span class="text-xs text-gray-500 font-bold">الكمية المحضّرة</span><div class="bg-beige p-2 rounded-lg text-forest"><i class="fa-solid fa-utensils"></i></div></div>
+                    <h3 id="kpi-prepared" class="text-2xl font-black text-navy num">—</h3><p class="text-xs text-gray-400 mt-1">وجبة</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                    <div class="flex justify-between items-start mb-2"><span class="text-xs text-gray-500 font-bold">الطلب المتوقع (من الملف)</span><div class="bg-amberBrand/25 p-2 rounded-lg text-amberBrand"><i class="fa-solid fa-bullseye"></i></div></div>
+                    <h3 id="kpi-expected" class="text-2xl font-black text-navy num">—</h3><p class="text-xs text-gray-400 mt-1">تقدير محاكاة مُعطى، وليس تنبؤ ذكاء اصطناعي</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                    <div class="flex justify-between items-start mb-2"><span class="text-xs text-gray-500 font-bold">المبيعات الفعلية</span><div class="bg-sage/20 p-2 rounded-lg text-forest"><i class="fa-solid fa-cash-register"></i></div></div>
+                    <h3 id="kpi-sales" class="text-2xl font-black text-navy num">—</h3><p class="text-xs text-gray-400 mt-1">وجبة بالسعر الكامل</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                    <div class="flex justify-between items-start mb-2"><span class="text-xs text-gray-500 font-bold">الفائض الغذائي (المتبقي)</span><div class="bg-amberBrand/25 p-2 rounded-lg text-amberBrand"><i class="fa-solid fa-box-archive"></i></div></div>
+                    <h3 id="kpi-surplus" class="text-2xl font-black text-navy num">—</h3><p id="kpi-surplus-sub" class="text-xs text-gray-400 mt-1">وجبة</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                    <div class="flex justify-between items-start mb-2"><span class="text-xs text-gray-500 font-bold">البيع المخفّض</span><div class="bg-emeraldBrand/20 p-2 rounded-lg text-emeraldBrand"><i class="fa-solid fa-tags"></i></div></div>
+                    <h3 id="kpi-discount" class="text-2xl font-black text-navy num">—</h3><p class="text-xs text-gray-400 mt-1">وجبة</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                    <div class="flex justify-between items-start mb-2"><span class="text-xs text-gray-500 font-bold">التبرع الغذائي</span><div class="bg-sage/20 p-2 rounded-lg text-forest"><i class="fa-solid fa-hand-holding-heart"></i></div></div>
+                    <h3 id="kpi-donation" class="text-2xl font-black text-navy num">—</h3><p class="text-xs text-gray-400 mt-1">وجبة (محاكاة)</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                    <div class="flex justify-between items-start mb-2"><span class="text-xs text-gray-500 font-bold">الهدر الغذائي</span><div class="bg-amberBrand/25 p-2 rounded-lg text-amberBrand"><i class="fa-solid fa-trash-can"></i></div></div>
+                    <h3 id="kpi-waste" class="text-2xl font-black text-amberBrand num">—</h3><p id="kpi-waste-sub" class="text-xs text-gray-500 mt-1">—</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                    <div class="flex justify-between items-start mb-2"><span class="text-xs text-gray-500 font-bold">نسبة الإنقاذ</span><div class="bg-emeraldBrand/20 p-2 rounded-lg text-emeraldBrand"><i class="fa-solid fa-chart-pie"></i></div></div>
+                    <h3 id="kpi-recovery" class="text-2xl font-black text-emeraldBrand num">—</h3><p id="kpi-rescued-sub" class="text-xs text-gray-500 mt-1">—</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30 space-y-3">
+                <h3 class="font-bold text-navy text-sm flex items-center gap-2"><i class="fa-solid fa-wallet text-forest"></i><span>الأثر المالي التقديري وفق النموذج المحاسبي الافتراضي</span></h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                    <div class="bg-offwhite rounded-lg p-3 border border-sage/30"><div class="text-xs text-gray-500 font-semibold">الخسارة التقديرية قبل الإنقاذ</div><div id="fin-pre" class="text-xl font-black text-amberBrand num">—</div></div>
+                    <div class="bg-offwhite rounded-lg p-3 border border-sage/30"><div class="text-xs text-gray-500 font-semibold">الإيراد المسترد (البيع المخفّض)</div><div id="fin-rev" class="text-xl font-black text-emeraldBrand num">—</div></div>
+                    <div class="bg-offwhite rounded-lg p-3 border border-sage/30"><div class="text-xs text-gray-500 font-semibold">الخسارة التقديرية بعد الإنقاذ وفق النموذج</div><div id="fin-post" class="text-xl font-black text-navy num">—</div></div>
+                </div>
+                <p class="text-xs text-gray-600 leading-relaxed">
+‎                    النموذج مبسّط: لا يُعدّ هذه الأرقام صافي ربح ولا توفيرًا مالياً محققًا. التبرعات ليست إيرادًا، وتكاليف التشغيل والتخلص من الطعام وغيرها غير محسوبة بالكامل.
+                </p>
+            </div>
+        </section>
+
+        <section id="charts" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                <h3 class="font-bold text-navy text-sm mb-1 flex items-center gap-2"><i class="fa-solid fa-chart-line text-forest"></i><span>الطلب المتوقع والكمية المحضّرة والمبيعات الفعلية (يوميًا)</span></h3>
+                <p class="text-[11px] text-gray-500 mb-3">انقر على نقطة لاختيار اليوم.</p>
+                <div class="canvas-box"><canvas id="chartPreparedSales" role="img" aria-label="رسم خطي يومي للكمية المحضّرة والطلب المتوقع والمبيعات الفعلية"></canvas></div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                <h3 class="font-bold text-navy text-sm mb-1 flex items-center gap-2"><i class="fa-solid fa-chart-column text-forest"></i><span>توزيع الفائض: بيع مخفّض، تبرع، هدر (يوميًا)</span></h3>
+                <p class="text-[11px] text-gray-500 mb-3">انقر على عمود لاختيار اليوم.</p>
+                <div class="canvas-box"><canvas id="chartSurplusDist" role="img" aria-label="رسم أعمدة مكدسة يومي لتوزيع الفائض"></canvas></div>
+            </div>
+        </section>
+
+        <section id="daily-log" class="bg-white p-6 rounded-xl shadow-sm border border-sage/30 space-y-4">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+                <h3 class="font-bold text-navy text-base flex items-center gap-2"><i class="fa-solid fa-table-list text-forest"></i><span>السجل اليومي — كبسة دجاج (بيانات محاكاة)</span></h3>
+                <span class="text-xs bg-beige text-navy px-3 py-1 rounded-md font-semibold border border-sage/40">المصدر: ملف Excel المرفق، 14 يومًا</span>
+            </div>
+            <div class="overflow-x-auto -mx-2 px-2">
+                <table class="w-full min-w-[760px] text-right text-xs">
+                    <thead class="bg-offwhite text-navy font-bold border-b border-sage/30">
+                        <tr>
+                            <th class="p-2">التاريخ</th><th class="p-2">المحضّر</th><th class="p-2">الطلب المتوقع</th><th class="p-2">المبيعات</th>
+                            <th class="p-2">المتبقي</th><th class="p-2">بيع مخفّض</th><th class="p-2">تبرع</th><th class="p-2">هدر</th><th class="p-2">نسبة الإنقاذ</th><th class="p-2">ملاحظة الملف</th>
+                        </tr>
+                    </thead>
+                    <tbody id="daily-tbody" class="divide-y divide-sage/20 text-gray-700"></tbody>
+                    <tfoot id="daily-tfoot" class="bg-beige/60 font-bold text-navy"></tfoot>
+                </table>
+            </div>
+        </section>
+
+        <section id="forecasting" class="bg-white p-6 rounded-xl shadow-sm border border-sage/30 space-y-4">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+                <h3 class="font-bold text-navy text-base flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-forest"></i><span>توصية كمية التحضير</span></h3>
+                <span class="text-xs bg-beige text-navy px-3 py-1 rounded-md font-semibold border border-sage/40">طريقة بسيطة: متوسط المبيعات السابقة + مخزون أمان</span>
+            </div>
+            <p id="forecast-target" class="text-sm font-bold text-forest"></p>
+            <p class="text-xs text-gray-600 leading-relaxed">
+‎                الطلب المتوقع المعروض هو تقدير مُعطى في ملف المحاكاة. أما الكمية المقترحة فتُحسب هنا بقاعدة شفافة من متوسط المبيعات الفعلية للأيام السابقة فقط (حتى 7 أيام)، دون استخدام مبيعات اليوم المستهدف أو أي بيانات لاحقة.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+                <div class="bg-offwhite p-4 rounded-xl border border-sage/30"><span class="text-xs text-gray-500 font-semibold">الطلب المتوقع المسجل</span><h4 id="fc-expected" class="text-xl font-bold text-navy mt-1 num">—</h4></div>
+                <div class="bg-offwhite p-4 rounded-xl border border-sage/30"><span class="text-xs text-gray-500 font-semibold">المبيعات الفعلية التاريخية</span><h4 id="fc-sales" class="text-xl font-bold text-forest mt-1 num">—</h4></div>
+                <div class="p-4 rounded-xl border border-emeraldBrand/30 bg-emeraldBrand/5"><span class="text-xs text-emeraldBrand font-bold">الكمية المقترحة للتحضير (نموذج التوصية)</span><h4 id="fc-rec" class="text-xl font-black text-emeraldBrand mt-1 num">—</h4></div>
+                <div class="bg-offwhite p-4 rounded-xl border border-sage/30"><span class="text-xs text-gray-500 font-semibold">الفائض المحتمل</span><h4 id="fc-surplus" class="text-xl font-bold text-navy mt-1 num">—</h4></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-offwhite p-4 rounded-xl border border-sage/30"><span class="text-xs text-gray-500 font-semibold">خطر نقص الكمية</span><h4 id="fc-risk" class="text-lg font-bold text-navy mt-1">—</h4><p id="fc-risk-sub" class="text-[11px] text-gray-500 mt-1"></p></div>
+                <div class="bg-offwhite p-4 rounded-xl border border-sage/30"><span class="text-xs text-gray-500 font-semibold">عدد الأيام التاريخية المستخدمة</span><h4 id="fc-days" class="text-lg font-bold text-navy mt-1 num">—</h4></div>
+                <div class="bg-offwhite p-4 rounded-xl border border-sage/30"><span class="text-xs text-gray-500 font-semibold">الكمية المحضّرة فعليًا</span><h4 id="fc-actual-prep" class="text-lg font-bold text-navy mt-1 num">—</h4></div>
+            </div>
+            <div class="text-xs text-navy bg-beige/60 p-3 rounded-lg border border-sage/30 space-y-1">
+                <p><strong>سبب التوصية:</strong> <span id="fc-reason">—</span></p>
+                <p id="fc-warning" class="text-amberBrand font-bold hidden"></p>
+            </div>
+        </section>
+
+        <section id="decisions" class="bg-white p-6 rounded-xl shadow-sm border border-sage/30 space-y-6">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+                <h3 class="font-bold text-navy text-base flex items-center gap-2"><i class="fa-solid fa-sliders text-forest"></i><span>محاكاة القرارات: نتائج المحاكاة مقابل خط الأساس</span></h3>
+                <span id="sim-view-label" class="text-xs bg-emeraldBrand/10 text-emeraldBrand px-3 py-1 rounded-md font-bold"></span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <form id="sim-form" class="space-y-4 bg-offwhite p-5 rounded-xl border border-sage/30" novalidate>
+                    <h4 id="sim-form-title" class="font-bold text-sm text-navy"></h4>
+                    <div>
+                        <label for="in-prepared" class="block text-xs font-semibold text-gray-600 mb-1">كمية التحضير المقترحة (وجبة):</label>
+                        <input type="number" inputmode="numeric" step="1" min="0" id="in-prepared" class="field">
+                        <button type="button" id="btn-apply-rec" class="mt-2 text-xs font-bold text-emeraldBrand underline min-h-[32px]">استخدام توصية فَيْض</button>
+                    </div>
+                    <div>
+                        <label for="in-safety" class="block text-xs font-semibold text-gray-600 mb-1">مخزون الأمان في التوصية (%):</label>
+                        <input type="number" inputmode="decimal" step="1" min="0" max="100" id="in-safety" class="field">
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="in-discount" class="block text-xs font-semibold text-gray-600 mb-1">كمية البيع المخفّض (وجبة):</label>
+                            <input type="number" inputmode="numeric" step="1" min="0" id="in-discount" class="field">
+                        </div>
+                        <div>
+                            <label for="in-donation" class="block text-xs font-semibold text-gray-600 mb-1">كمية التبرع (وجبة):</label>
+                            <input type="number" inputmode="numeric" step="1" min="0" id="in-donation" class="field">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="in-price" class="block text-xs font-semibold text-gray-600 mb-1">سعر البيع المخفّض للوجبة (ر.س):</label>
+                        <input type="number" inputmode="decimal" step="0.5" min="0" id="in-price" class="field">
+                    </div>
+                    <div class="flex flex-wrap gap-3 pt-1">
+                        <button type="submit" id="btn-simulate" class="btn btn-primary flex-1 sm:flex-none"><i class="fa-solid fa-play ml-1"></i>محاكاة الخطة</button>
+                        <button type="button" id="btn-reset" class="btn btn-ghost flex-1 sm:flex-none"><i class="fa-solid fa-rotate-left ml-1"></i>إعادة الإعدادات الأساسية</button>
+                    </div>
+                    <div id="sim-error" class="hidden text-xs font-bold text-red-800 bg-red-50 border border-red-200 rounded-lg p-3" role="alert"></div>
+                    <div id="sim-info" class="hidden text-xs font-semibold text-navy bg-beige/70 border border-sage/40 rounded-lg p-3"></div>
+                </form>
+
+                <div class="bg-navy text-white p-5 rounded-xl space-y-4 shadow-inner">
+                    <h4 class="font-bold text-sm text-sage border-b border-white/10 pb-2">نتائج المحاكاة (لا تغيّر بيانات Excel الأصلية)</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-right min-w-[320px]">
+                            <thead class="text-sage"><tr><th class="py-1">المؤشر</th><th class="py-1">خط الأساس</th><th class="py-1">المحاكاة</th><th class="py-1">الفرق</th></tr></thead>
+                            <tbody id="sim-tbody" class="divide-y divide-white/10 num"></tbody>
+                        </table>
+                    </div>
+                    <div id="sim-reduction" class="text-sm font-black text-emeraldBrand"></div>
+                    <ul id="sim-assumptions" class="text-[11px] text-sage/90 list-disc list-inside space-y-1"></ul>
+                    <div id="sim-conservation" class="text-[11px] text-sage/90 bg-white/5 p-2.5 rounded-lg border border-white/5"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="simulator" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                <h3 class="font-bold text-navy text-sm mb-3 flex items-center gap-2"><i class="fa-solid fa-chart-column text-forest"></i><span>الهدر والوجبات المستردة: خط الأساس مقابل السيناريو المحاكى</span></h3>
+                <div class="canvas-box"><canvas id="chartScenarioComparison" role="img" aria-label="مقارنة الهدر والوجبات المستردة بين خط الأساس والسيناريو"></canvas></div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-sage/30">
+                <h3 class="font-bold text-navy text-sm mb-3 flex items-center gap-2"><i class="fa-solid fa-wallet text-forest"></i><span>الأثر المالي التقديري وفق النموذج المحاسبي نفسه</span></h3>
+                <div class="canvas-box"><canvas id="chartFinancialImpact" role="img" aria-label="مقارنة المؤشرات المالية بين خط الأساس والسيناريو"></canvas></div>
+            </div>
+        </section>
+
+        <section id="matching" class="bg-white p-6 rounded-xl shadow-sm border border-sage/30 space-y-4">
+            <h3 class="font-bold text-navy text-base flex items-center gap-2"><i class="fa-solid fa-handshake-angle text-forest"></i><span>مطابقة التبرع مع الجهات المستفيدة (توضيحية)</span></h3>
+            <div class="bg-amberBrand/15 border border-amberBrand/50 rounded-lg p-3 text-xs font-bold text-navy">
+‎                المطابقة والجهات المستفيدة في هذا النموذج توضيحية، ولا تمثل شراكات أو عمليات تبرع فعلية.
+            </div>
+            <p class="text-xs text-gray-600 leading-relaxed">
+‎                يختبر هذا الجزء معايير مطابقة مفهومة على جهة مستفيدة <strong>افتراضية</strong> بمدخلات تحددها أنت. لا تُرسل أي إشعارات ولا تُجدول أي استلام.
+            </p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="space-y-3 bg-offwhite p-5 rounded-xl border border-sage/30">
+                    <h4 class="font-bold text-sm text-navy">جهة مستفيدة افتراضية (مثال توضيحي)</h4>
+                    <div class="text-xs text-gray-600">الكمية المراد التبرع بها (من السيناريو الحالي): <strong id="m-qty" class="text-navy num">—</strong> وجبة</div>
+                    <div><label for="m-capacity" class="block text-xs font-semibold text-gray-600 mb-1">الطاقة الاستيعابية الافتراضية للجهة (وجبة):</label><input type="number" inputmode="numeric" min="0" step="1" id="m-capacity" value="100" class="field"></div>
+                    <div><label for="m-pickup" class="block text-xs font-semibold text-gray-600 mb-1">الوقت المتوقع حتى الاستلام (ساعة):</label><input type="number" inputmode="decimal" min="0" step="0.5" id="m-pickup" value="2" class="field"></div>
+                    <div><label for="m-maxhold" class="block text-xs font-semibold text-gray-600 mb-1">أقصى مدة آمنة بين الطهي والتوزيع (ساعة) — افتراض قابل للتعديل:</label><input type="number" inputmode="decimal" min="0" step="0.5" id="m-maxhold" value="4" class="field"></div>
+                    <label class="flex items-center gap-2 text-xs font-semibold text-gray-700 min-h-[44px]"><input type="checkbox" id="m-safe" checked class="w-5 h-5 accent-emerald-700"><span>الطعام محفوظ وفق اشتراطات السلامة (افتراض)</span></label>
+                </div>
+                <div class="bg-offwhite p-5 rounded-xl border border-sage/30 space-y-2">
+                    <h4 class="font-bold text-sm text-navy">نتيجة فحص المعايير</h4>
+                    <ul id="m-results" class="text-xs space-y-2"></ul>
+                    <p id="m-summary" class="text-xs font-bold text-forest pt-2"></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-sage/30 space-y-4">
+            <h3 class="font-bold text-navy text-base flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-forest"></i><span>الافتراضات المحاسبية وإخلاء المسؤولية</span></h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-gray-600 leading-relaxed">
+                <div class="space-y-2 bg-offwhite p-4 rounded-xl border border-sage/30">
+                    <h4 class="font-bold text-navy text-sm">المرجع المحاسبي (من ورقة الافتراضات):</h4>
+                    <ul id="assumption-list" class="list-disc list-inside space-y-1"></ul>
+                </div>
+                <div class="space-y-2 bg-offwhite p-4 rounded-xl border border-sage/30">
+                    <h4 class="font-bold text-navy text-sm">ملاحظات وإخلاء مسؤولية:</h4>
+                    <p>جميع البيانات افتراضية (محاكاة) لمطعم يقدّم كبسة دجاج فقط، وليست نتائج تشغيلية حقيقية. النتائج المالية تقديرات وفق نموذج مبسّط وليست بديلًا عن التدقيق المالي. هذا المشروع نموذج أولي مستقل، ولا يرتبط بأي جهة رسمية ولا يدّعي أي اعتماد أو شراكة.</p>
+                    <p>التبرع لا يُحسب إيرادًا للمطعم، لكنه يُحسب ضمن الوجبات المستردة (أثر اجتماعي) في نسبة الإنقاذ.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+‎    <!-- المساعد التجريبي -->
+    <div class="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50">
+        <button id="assistant-toggle" class="bg-forest text-white p-4 rounded-full shadow-xl hover:bg-navy transition flex items-center gap-2 border-2 border-white min-h-[56px]" aria-expanded="false" aria-controls="assistant-box">
+            <i class="fa-solid fa-robot text-lg"></i>
+            <span class="text-xs font-bold hidden sm:inline">المساعد التجريبي</span>
+        </button>
+    </div>
+    <div id="assistant-box" class="hidden fixed z-50 left-3 right-3 bottom-24 sm:left-6 sm:right-auto sm:bottom-24 sm:w-96 bg-white rounded-2xl shadow-2xl border border-sage/50 overflow-hidden flex flex-col" role="dialog" aria-label="المساعد التجريبي">
+        <div class="bg-navy text-white p-3 flex justify-between items-center shrink-0">
+            <span class="font-bold text-xs flex items-center gap-2"><i class="fa-solid fa-robot text-sage"></i><span>مساعد فَيْض التجريبي (قواعد محلية وبيانات التطبيق)</span></span>
+            <button id="assistant-close" class="text-white hover:text-sage w-9 h-9" aria-label="إغلاق"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="assistant-chat-body" class="p-3 h-64 min-h-[5rem] flex-shrink overflow-y-auto space-y-3 text-xs bg-offwhite" aria-live="polite"></div>
+        <form id="assistant-form" class="shrink-0 p-2 bg-white border-t border-sage/30 flex gap-2">
+            <input type="text" id="assistant-input" autocomplete="off" placeholder="اكتب سؤالك عن بيانات اللوحة..." class="flex-grow min-w-0 bg-offwhite border border-sage/50 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-forest text-navy" aria-label="سؤال للمساعد">
+            <button type="submit" class="bg-forest text-white px-4 rounded-lg hover:bg-navy transition min-h-[44px]" aria-label="إرسال"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+    </div>
+
+    <footer class="bg-navy text-white text-center py-6 mt-12 text-xs border-t border-white/10 px-4">
+        <p>فَيْض | FAYD — نموذج أولي لإدارة الفائض والهدر الغذائي في المطاعم (بيانات محاكاة).</p>
+        <p class="text-sage mt-1">© 2026</p>
+    </footer>
+
+    
+    
+    
+<script>
+‎/* مولَّد من ملف Excel بواسطة tools/extract_data.py — بيانات محاكاة وليست نتائج تشغيلية حقيقية */
+(function (root) {
+  'use strict';
+  const FAYD_DATA = {
+  "meta": {
+    "source": "fayd_synthetic_data 3.xlsx",
+    "period": "2026-10-01/2026-10-14",
+    "synthetic": true
+  },
+  "assumptions": {
+    "mealCost": 10,
+    "fullPrice": 20,
+    "discountPrice": 14
+  },
+  "reportedSummary": {
+    "prepared": 1410,
+    "expected": 1209,
+    "sales": 1130,
+    "remaining": 280,
+    "discount": 118,
+    "donation": 90,
+    "waste": 72,
+    "rescued": 208,
+    "preLoss": 2800,
+    "recoveredRevenue": 1652,
+    "postLoss": 1148
+  },
+  "daily": [
+    {
+      "id": 1,
+      "date": "2026-10-01",
+      "excelDay": "الخميس",
+      "prepared": 100,
+      "expected": 80,
+      "sales": 75,
+      "discount": 10,
+      "donation": 8,
+      "note": ""
+    },
+    {
+      "id": 2,
+      "date": "2026-10-02",
+      "excelDay": "الجمعة",
+      "prepared": 140,
+      "expected": 125,
+      "sales": 128,
+      "discount": 6,
+      "donation": 3,
+      "note": ""
+    },
+    {
+      "id": 3,
+      "date": "2026-10-03",
+      "excelDay": "السبت",
+      "prepared": 110,
+      "expected": 95,
+      "sales": 82,
+      "discount": 12,
+      "donation": 9,
+      "note": ""
+    },
+    {
+      "id": 4,
+      "date": "2026-10-04",
+      "excelDay": "الأحد",
+      "prepared": 90,
+      "expected": 75,
+      "sales": 71,
+      "discount": 8,
+      "donation": 6,
+      "note": ""
+    },
+    {
+      "id": 5,
+      "date": "2026-10-05",
+      "excelDay": "الاثنين",
+      "prepared": 85,
+      "expected": 70,
+      "sales": 52,
+      "discount": 14,
+      "donation": 10,
+      "note": "بداية الأسبوع: طلب منخفض"
+    },
+    {
+      "id": 6,
+      "date": "2026-10-06",
+      "excelDay": "الثلاثاء",
+      "prepared": 85,
+      "expected": 72,
+      "sales": 69,
+      "discount": 7,
+      "donation": 5,
+      "note": ""
+    },
+    {
+      "id": 7,
+      "date": "2026-10-07",
+      "excelDay": "الأربعاء",
+      "prepared": 90,
+      "expected": 78,
+      "sales": 80,
+      "discount": 5,
+      "donation": 3,
+      "note": "توقع قريب من الواقع"
+    },
+    {
+      "id": 8,
+      "date": "2026-10-08",
+      "excelDay": "الخميس",
+      "prepared": 105,
+      "expected": 90,
+      "sales": 88,
+      "discount": 7,
+      "donation": 6,
+      "note": ""
+    },
+    {
+      "id": 9,
+      "date": "2026-10-09",
+      "excelDay": "الجمعة",
+      "prepared": 150,
+      "expected": 135,
+      "sales": 112,
+      "discount": 15,
+      "donation": 13,
+      "note": "طقس سيئ (افتراضي): انخفاض مفاجئ في الطلب"
+    },
+    {
+      "id": 10,
+      "date": "2026-10-10",
+      "excelDay": "السبت",
+      "prepared": 110,
+      "expected": 100,
+      "sales": 97,
+      "discount": 6,
+      "donation": 4,
+      "note": ""
+    },
+    {
+      "id": 11,
+      "date": "2026-10-11",
+      "excelDay": "الأحد",
+      "prepared": 95,
+      "expected": 80,
+      "sales": 78,
+      "discount": 7,
+      "donation": 6,
+      "note": ""
+    },
+    {
+      "id": 12,
+      "date": "2026-10-12",
+      "excelDay": "الاثنين",
+      "prepared": 80,
+      "expected": 65,
+      "sales": 44,
+      "discount": 14,
+      "donation": 12,
+      "note": "بداية الأسبوع: طلب منخفض"
+    },
+    {
+      "id": 13,
+      "date": "2026-10-13",
+      "excelDay": "الثلاثاء",
+      "prepared": 80,
+      "expected": 68,
+      "sales": 80,
+      "discount": 0,
+      "donation": 0,
+      "note": "نفد الأكل: احتمال مبيعات ضائعة"
+    },
+    {
+      "id": 14,
+      "date": "2026-10-14",
+      "excelDay": "الأربعاء",
+      "prepared": 90,
+      "expected": 76,
+      "sales": 74,
+      "discount": 7,
+      "donation": 5,
+      "note": ""
+    }
+  ]
+};
+  root.FAYD_DATA = FAYD_DATA;
+  if (typeof module !== 'undefined') module.exports = FAYD_DATA;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+‎/* محرك حسابات فَيْض المركزي — دوال نقية قابلة للاختبار في Node والمتصفح.
+‎   كل البطاقات والرسوم والتقارير والمساعد تعتمد على هذه الدوال فقط. */
+(function (root) {
+  'use strict';
+
+  const DAY_NAMES = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+  const MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+  const KEY_LABELS = {
+    prepared: 'الكمية المحضّرة', expected: 'الطلب المتوقع', sales: 'المبيعات الفعلية', remaining: 'الكمية المتبقية',
+    discount: 'البيع المخفّض', donation: 'التبرع الغذائي', waste: 'الهدر الغذائي', rescued: 'الوجبات المستردة',
+    preLoss: 'الخسارة التقديرية قبل الإنقاذ', recoveredRevenue: 'الإيراد المسترد', postLoss: 'الخسارة التقديرية بعد الإنقاذ'
+  };
+
+‎  /* ---------- أدوات مساعدة ---------- */
+  function dayNameOf(iso) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return DAY_NAMES[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+  }
+  function dateLabel(iso) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return d + ' ' + MONTHS[m - 1] + ' ' + y;
+  }
+‎  /** نسبة مئوية آمنة: null عندما يكون المقام صفرًا (لا NaN ولا Infinity). */
+  function pct(a, b) { return b > 0 ? (a / b) * 100 : null; }
+  function fmtNum(n) { return n === null || n === undefined || !isFinite(n) ? '—' : Number(n).toLocaleString('en-US'); }
+  function fmtPct(n) { return n === null || n === undefined || !isFinite(n) ? 'لا ينطبق' : n.toFixed(2) + '%'; }
+
+‎  /* ---------- الحساب الأساسي ---------- */
+‎  /** يشتق كل المؤشرات من (محضّر، مبيعات، مخفّض، تبرع). لا يعتمد على أي قيمة مخزّنة للهدر أو المتبقي. */
+  function derive(base, A) {
+    const price = base.discountPrice !== undefined ? base.discountPrice : A.discountPrice;
+    const remaining = base.prepared - base.sales;
+    const rescued = base.discount + base.donation;
+    const waste = remaining - rescued;
+    const recoveredRevenue = base.discount * price;
+    const preLoss = remaining * A.mealCost;
+    return Object.assign({}, base, {
+      remaining, rescued, waste,
+      rescueRate: pct(rescued, remaining),
+      wasteRate: pct(waste, base.prepared),
+      preLoss, recoveredRevenue, postLoss: preLoss - recoveredRevenue
+    });
+  }
+
+‎  /** إجمالي فترة: يجمع الكميات ثم يشتق النسب من المجاميع (لا يجمع نسبًا يومية). */
+  function aggregate(list, A) {
+    const sum = k => list.reduce((s, r) => s + (r[k] || 0), 0);
+    const out = derive({ prepared: sum('prepared'), sales: sum('sales'), discount: sum('discount'), donation: sum('donation') }, A);
+    out.expected = sum('expected');
+    out.days = list.length;
+    return out;
+  }
+
+‎  /* ---------- التحقق ---------- */
+  function validateRecord(r, label) {
+    const errs = [], warns = [];
+    const who = label ? label + ': ' : '';
+    ['prepared', 'sales', 'discount', 'donation'].forEach(k => {
+      if (!Number.isFinite(r[k])) errs.push(who + 'قيمة غير صالحة في «' + KEY_LABELS[k] + '».');
+      else if (r[k] < 0) errs.push(who + '«' + KEY_LABELS[k] + '» لا يمكن أن تكون سالبة.');
+      else if (!Number.isInteger(r[k])) errs.push(who + '«' + KEY_LABELS[k] + '» يجب أن تكون عددًا صحيحًا.');
+    });
+    if (errs.length) return { errors: errs, warnings: warns };
+    if (r.sales > r.prepared) warns.push(who + 'المبيعات (' + r.sales + ') تتجاوز الكمية المحضّرة (' + r.prepared + ').');
+    const d = derive(r, { mealCost: 0, discountPrice: 0 });
+    if (r.discount + r.donation > d.remaining) errs.push(who + 'البيع المخفّض والتبرع (' + (r.discount + r.donation) + ') يتجاوزان الكمية المتبقية (' + d.remaining + ').');
+    if (r.prepared !== r.sales + r.discount + r.donation + d.waste) errs.push(who + 'معادلة حفظ الوجبات غير متسقة.');
+    return { errors: errs, warnings: warns };
+  }
+  function validateAll(daily) {
+    const errors = [], warnings = [];
+    daily.forEach(r => {
+      const v = validateRecord(r, dateLabel(r.date));
+      errors.push(...v.errors); warnings.push(...v.warnings);
+    });
+    return { errors, warnings };
+  }
+‎  /** يقارن مجاميع السجلات اليومية بملخص الملف؛ يعيد قائمة التناقضات دون تعديل أي قيمة. */
+  function reconcile(daily, reported, A) {
+    const agg = aggregate(daily, A);
+    const mism = [];
+    Object.keys(reported).forEach(k => {
+      if (agg[k] !== reported[k]) mism.push({ key: k, label: KEY_LABELS[k] || k, computed: agg[k], reported: reported[k] });
+    });
+    return mism;
+  }
+  function conservationHolds(r) {
+    return r.prepared === r.sales + r.discount + r.donation + r.waste;
+  }
+
+‎  /* ---------- توصية التحضير (متوسط المبيعات التاريخية السابقة فقط) ---------- */
+  function recommend(daily, idx, opts) {
+    const o = Object.assign({ safetyPct: 10, window: 7, minHistory: 3 }, opts || {});
+    const sp = Number.isFinite(o.safetyPct) && o.safetyPct >= 0 ? o.safetyPct : 0;
+    const hist = daily.slice(Math.max(0, idx - o.window), idx); // لا يشمل اليوم المستهدف ولا أي يوم لاحق
+    const n = hist.length;
+    if (n === 0) {
+      return { status: 'none', daysUsed: 0, avg: null, recommended: null, potentialSurplus: null, shortageRisk: null, riskLevel: null,
+        warning: 'لا توجد بيانات تاريخية سابقة لهذا اليوم، فلا يمكن حساب توصية.', reason: 'لا توجد أيام سابقة.' };
+    }
+    const avg = hist.reduce((s, h) => s + h.sales, 0) / n;
+    const recommended = Math.ceil(avg * (1 + sp / 100) - 1e-9);
+    const shortDays = hist.filter(h => h.sales >= recommended).length;
+    const shortageRisk = (shortDays / n) * 100;
+    const riskLevel = shortageRisk === 0 ? 'منخفض' : shortageRisk <= 20 ? 'متوسط' : 'مرتفع';
+    const prelim = n < o.minHistory;
+    return {
+      status: prelim ? 'preliminary' : 'ok', daysUsed: n, avg, recommended,
+      potentialSurplus: recommended - Math.round(avg), shortageRisk, riskLevel,
+      warning: prelim ? 'توصية أولية: عدد الأيام التاريخية (' + n + ') أقل من الحد الأدنى (' + o.minHistory + ').' : '',
+      reason: 'متوسط مبيعات ' + n + ' ' + (n === 1 ? 'يوم' : 'أيام') + ' سابقة = ' + (Math.round(avg * 10) / 10) +
+‎        ' وجبة، مضافًا إليه مخزون أمان ' + sp + '% ثم تقريب لأعلى = ' + recommended + ' وجبة.'
+    };
+  }
+‎  /** مجموع الكميات المقترحة لأيام الفترة؛ الأيام بلا تاريخ كافٍ تحتفظ بالكمية المحضّرة الفعلية. */
+  function totalRecommendedPrep(daily, safetyPct) {
+    let total = 0, fallbackDays = 0;
+    daily.forEach((d, i) => {
+      const r = recommend(daily, i, { safetyPct });
+      if (r.status === 'none') { total += d.prepared; fallbackDays++; } else total += r.recommended;
+    });
+    return { total, fallbackDays };
+  }
+
+‎  /* ---------- محاكاة القرارات ---------- */
+  function parseQty(v, label) {
+    if (v === null || v === undefined || String(v).trim() === '') return { err: 'أدخل قيمة في حقل «' + label + '».' };
+    const n = Number(v);
+    if (!Number.isFinite(n)) return { err: 'القيمة في «' + label + '» ليست رقمًا.' };
+    if (n < 0) return { err: '«' + label + '» لا يمكن أن تكون سالبة.' };
+    if (!Number.isInteger(n)) return { err: '«' + label + '» يجب أن تكون عددًا صحيحًا.' };
+    return { n };
+  }
+  /**
+   * baseline: سجل أساسي مشتق (يوم أو إجمالي). inputs: {prepared, discount, donation, price} (نصوص أو أرقام).
+‎   * افتراض موثّق: الطلب المحاكى = المبيعات التاريخية المسجلة، فالمبيعات المحاكاة = min(المحضّر المحاكى، المبيعات المسجلة).
+‎   * لا تُعدَّل بيانات الأساس أبدًا.
+   */
+  function simulate(baseline, inputs, A) {
+    const errors = [];
+    const p = parseQty(inputs.prepared, 'كمية التحضير المقترحة'); if (p.err) errors.push(p.err);
+    const d = parseQty(inputs.discount, 'كمية البيع المخفّض'); if (d.err) errors.push(d.err);
+    const t = parseQty(inputs.donation, 'كمية التبرع'); if (t.err) errors.push(t.err);
+    let price = null;
+    if (inputs.price === null || inputs.price === undefined || String(inputs.price).trim() === '') errors.push('أدخل قيمة في حقل «سعر البيع المخفّض».');
+    else {
+      price = Number(inputs.price);
+      if (!Number.isFinite(price) || price <= 0) errors.push('سعر البيع المخفّض يجب أن يكون رقمًا أكبر من صفر.');
+      else if (price > A.fullPrice) errors.push('سعر البيع المخفّض (' + price + ') لا يمكن أن يتجاوز سعر البيع الكامل (' + A.fullPrice + ' ر.س).');
+    }
+    if (errors.length) return { valid: false, errors };
+
+    const sales = Math.min(p.n, baseline.sales);
+    const lostSales = Math.max(0, baseline.sales - p.n);
+    const remaining = p.n - sales;
+    if (d.n + t.n > remaining) {
+      return { valid: false, errors: ['البيع المخفّض (' + d.n + ') والتبرع (' + t.n + ') معًا = ' + (d.n + t.n) +
+‎        ' وجبة، وهو يتجاوز الفائض المتاح في هذا السيناريو (' + remaining + ' وجبة). خفّض إحدى الكميتين.'] };
+    }
+    const scenario = derive({ prepared: p.n, sales, discount: d.n, donation: t.n, discountPrice: price }, A);
+    const wasteReduction = baseline.waste - scenario.waste;
+    return {
+      valid: true, errors: [], baseline, scenario, lostSales,
+      delta: {
+        waste: scenario.waste - baseline.waste, rescued: scenario.rescued - baseline.rescued,
+        rescueRate: (scenario.rescueRate === null || baseline.rescueRate === null) ? null : scenario.rescueRate - baseline.rescueRate,
+        recoveredRevenue: scenario.recoveredRevenue - baseline.recoveredRevenue, postLoss: scenario.postLoss - baseline.postLoss,
+        prepared: scenario.prepared - baseline.prepared
+      },
+      wasteReduction, wasteReductionPct: baseline.waste > 0 ? (wasteReduction / baseline.waste) * 100 : null,
+      conserved: conservationHolds(scenario),
+      assumptions: [
+‎        'الطلب المحاكى = المبيعات التاريخية المسجلة (افتراض)، وليس مبيعات مستقبلية معروفة.',
+‎        'سعر البيع المخفّض في السيناريو: ' + price + ' ر.س؛ تكلفة الوجبة: ' + A.mealCost + ' ر.س.',
+‎        'التبرع لا يُحسب إيرادًا، ويُحتسب ضمن الوجبات المستردة فقط.'
+      ]
+    };
+  }
+
+‎  /* ---------- المساعد التشغيلي (قواعد محلية، بلا نموذج ذكاء اصطناعي) ---------- */
+  function normalizeAr(s) {
+    return String(s).replace(/[ً-ْـ]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/ة/g, 'ه')
+      .replace(/[؟?!.,،]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+  function viewTitle(ctx) {
+    return ctx.idx === null || ctx.idx === undefined ? 'إجمالي الفترة (14 يومًا)'
+      : dayNameOf(ctx.daily[ctx.idx].date) + ' ' + dateLabel(ctx.daily[ctx.idx].date);
+  }
+  /** ctx = {daily, A, idx (null للإجمالي), sim (نتيجة simulate أو null), safetyPct} */
+  function assistantAnswer(question, ctx) {
+    const q = normalizeAr(question);
+    if (!q) return 'اكتب سؤالًا أولًا.';
+    const { daily, A } = ctx;
+    const v = ctx.idx === null || ctx.idx === undefined ? aggregate(daily, A) : derive(daily[ctx.idx], A);
+    const t = '(' + viewTitle(ctx) + ') ';
+    const has = (...w) => w.some(x => q.includes(x));
+    const recs = daily.map(r => derive(r, A));
+
+    if (has('الفرق', 'يختلف', 'مقارنه') && has('خط الاساس', 'سيناريو', 'فيض', 'المحاكاه')) {
+      return simSummary(ctx, v, t, true);
+    }
+    if (has('ماذا تغير', 'تغير', 'المحاكاه', 'محاكاه', 'السيناريو')) return simSummary(ctx, v, t, false);
+    if (has('اعلي', 'اكثر', 'اكبر', 'اسوا') && has('هدر')) {
+      const max = Math.max(...recs.map(r => r.waste));
+      if (max === 0) return 'لم يُسجَّل هدر في أي يوم من الفترة.';
+      const days = recs.filter(r => r.waste === max).map(r => dayNameOf(r.date) + ' ' + dateLabel(r.date));
+      return 'أعلى هدر يومي في الفترة كلها هو ' + fmtNum(max) + ' وجبة، وسُجّل في: ' + days.join(' و') + '.';
+    }
+    if (has('نسبه الانقاذ', 'معدل الانقاذ')) {
+      return t + 'نسبة الإنقاذ = (' + fmtNum(v.discount) + ' بيع مخفّض + ' + fmtNum(v.donation) + ' تبرع) ÷ ' + fmtNum(v.remaining) +
+‎        ' متبقٍ = ' + fmtPct(v.rescueRate) + '.';
+    }
+    if (has('انقاذ', 'استرد', 'مستردة', 'منقذ')) {
+      return t + 'الوجبات المستردة = ' + fmtNum(v.discount) + ' (بيع مخفّض) + ' + fmtNum(v.donation) + ' (تبرع) = ' + fmtNum(v.rescued) + ' من أصل ' + fmtNum(v.remaining) + ' وجبة متبقية.';
+    }
+    if (has('ايراد')) return t + 'الإيراد المسترد = ' + fmtNum(v.discount) + ' وجبة × ' + A.discountPrice + ' ر.س = ' + fmtNum(v.recoveredRevenue) + ' ر.س (التبرع لا يُحسب إيرادًا).';
+    if (has('خساره', 'خسائر', 'مالي', 'الاثر المالي')) {
+      return t + 'وفق النموذج المحاسبي الافتراضي: الخسارة التقديرية قبل الإنقاذ ' + fmtNum(v.preLoss) + ' ر.س، الإيراد المسترد ' + fmtNum(v.recoveredRevenue) +
+‎        ' ر.س، والخسارة التقديرية بعد الإنقاذ ' + fmtNum(v.postLoss) + ' ر.س. هذه تقديرات نموذج مبسّط وليست ربحًا أو توفيرًا محققًا.';
+    }
+    if (has('هدر')) {
+      return t + 'الهدر الغذائي ' + fmtNum(v.waste) + ' وجبة من أصل ' + fmtNum(v.remaining) + ' وجبة متبقية، وتمثل ' + fmtPct(v.wasteRate) + ' من الكمية المحضّرة (' + fmtNum(v.prepared) + ').';
+    }
+    if (has('مخفض')) return t + 'البيع المخفّض: ' + fmtNum(v.discount) + ' وجبة.';
+    if (has('تبرع')) return t + 'التبرع الغذائي: ' + fmtNum(v.donation) + ' وجبة (بيانات محاكاة، لا تمثل تبرعات فعلية).';
+    if (has('طلب', 'مبيعات', 'مباع')) {
+      const gap = v.expected - v.sales;
+      return t + 'الطلب المتوقع المسجل ' + fmtNum(v.expected) + ' وجبة مقابل مبيعات فعلية ' + fmtNum(v.sales) + ' وجبة؛ الفرق ' + fmtNum(gap) + ' وجبة.';
+    }
+    if (has('توصيه', 'تحضير', 'اقترح')) {
+      const r = recommend(daily, ctx.idx === null || ctx.idx === undefined ? daily.length : ctx.idx, { safetyPct: ctx.safetyPct });
+      if (r.status === 'none') return r.warning;
+      const target = ctx.idx === null || ctx.idx === undefined ? 'اليوم التالي للفترة' : 'هذا اليوم';
+      return 'الكمية المقترحة لـ' + target + ': ' + r.recommended + ' وجبة. ' + r.reason + (r.warning ? ' ' + r.warning : '');
+    }
+    if (has('افتراض', 'محاسبي', 'تكلفه', 'سعر')) {
+      return 'الافتراضات من الملف: تكلفة الوجبة ' + A.mealCost + ' ر.س، سعر البيع الكامل ' + A.fullPrice + ' ر.س، سعر البيع المخفّض ' + A.discountPrice + ' ر.س. البيانات كلها محاكاة.';
+    }
+    return 'لا أستطيع استخراج إجابة لهذا السؤال من بيانات التطبيق. جرّب السؤال عن: الهدر، اليوم الأعلى هدرًا، الوجبات المستردة، نسبة الإنقاذ، الإيراد المسترد، التوصية، أو ما تغيّر في المحاكاة.';
+  }
+  function simSummary(ctx, v, t, compare) {
+    const s = ctx.sim;
+    if (!s || !s.valid) {
+      return t + (s && s.errors && s.errors.length ? 'آخر محاكاة غير صالحة: ' + s.errors[0] : 'لم تُشغَّل محاكاة بعد. اضغط «محاكاة الخطة» لتظهر النتائج.');
+    }
+    const b = s.baseline, c = s.scenario, d = s.delta;
+    const sign = n => (n > 0 ? '+' : '') + fmtNum(n);
+    const head = t + 'خط الأساس: تحضير ' + fmtNum(b.prepared) + '، هدر ' + fmtNum(b.waste) + '، مستردة ' + fmtNum(b.rescued) + '. السيناريو المحاكى: تحضير ' + fmtNum(c.prepared) +
+‎      '، هدر ' + fmtNum(c.waste) + '، مستردة ' + fmtNum(c.rescued) + '.';
+    if (d.prepared === 0 && d.waste === 0 && d.rescued === 0 && d.recoveredRevenue === 0) return head + ' لا فرق عن خط الأساس بعد؛ غيّر المدخلات ثم أعد المحاكاة.';
+    return head + ' التغيّر: الهدر ' + sign(d.waste) + ' وجبة' + (s.wasteReductionPct !== null ? ' (انخفاض ' + fmtPct(s.wasteReductionPct) + ')' : '') +
+‎      '، الإيراد المسترد ' + sign(d.recoveredRevenue) + ' ر.س، الخسارة التقديرية ' + sign(d.postLoss) + ' ر.س.' +
+      (s.lostSales > 0 ? ' تنبيه: قد تضيع مبيعات محتملة بمقدار ' + s.lostSales + ' وجبة.' : '') + (compare ? ' (نتائج محاكاة وفق افتراضات المستخدم لا نتائج ميدانية).' : '');
+  }
+
+  const api = { DAY_NAMES, KEY_LABELS, dayNameOf, dateLabel, pct, fmtNum, fmtPct, derive, aggregate, validateRecord, validateAll, reconcile,
+    conservationHolds, recommend, totalRecommendedPrep, parseQty, simulate, normalizeAr, assistantAnswer };
+  root.FaydEngine = api;
+  if (typeof module !== 'undefined') module.exports = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+‎/* واجهة فَيْض — تقرأ البيانات من FAYD_DATA وتحسب عبر FaydEngine فقط. لا أرقام ثابتة هنا. */
+(function () {
+  'use strict';
+  const D = window.FAYD_DATA, E = window.FaydEngine, A = D.assumptions, daily = D.daily;
+  const $ = id => document.getElementById(id);
+  const fmt = E.fmtNum, fmtPct = E.fmtPct;
+  const DEFAULT_SAFETY = 10;
+  const state = { idx: null, sim: null, charts: {} };
+
+  const dayLabel = i => E.dayNameOf(daily[i].date) + ' ' + E.dateLabel(daily[i].date);
+  const baselineView = () => state.idx === null ? E.aggregate(daily, A) : E.derive(daily[state.idx], A);
+  const viewName = () => state.idx === null ? 'إجمالي الفترة (14 يومًا)' : dayLabel(state.idx);
+  const safetyPct = () => { const v = Number($('in-safety').value); return Number.isFinite(v) && v >= 0 ? v : DEFAULT_SAFETY; };
+  const set = (id, txt) => { $(id).textContent = txt; };
+
+‎  /* ---------- مطابقة البيانات مع ملخص الملف ---------- */
+  function renderReconcile() {
+    const box = $('reconcile-box');
+    const v = E.validateAll(daily), mism = E.reconcile(daily, D.reportedSummary, A);
+    box.replaceChildren();
+    if (!v.errors.length && !v.warnings.length && !mism.length) { box.className = 'hidden'; return; }
+    box.className = 'rounded-xl border px-4 py-3 text-sm bg-red-50 border-red-300 text-red-900';
+    const h = document.createElement('strong'); h.textContent = 'تحذير: تناقض في البيانات — القيم الأصلية محفوظة دون تعديل.'; box.appendChild(h);
+    const ul = document.createElement('ul'); ul.className = 'list-disc list-inside mt-1 text-xs space-y-1';
+    mism.forEach(m => { const li = document.createElement('li'); li.textContent = 'المؤشر «' + m.label + '»: مجموع السجلات اليومية ' + fmt(m.computed) + ' بينما ملخص الملف ' + fmt(m.reported) + '.'; ul.appendChild(li); });
+    v.errors.concat(v.warnings).forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+    box.appendChild(ul);
+  }
+
+‎  /* ---------- المؤشرات ---------- */
+  function renderKpis() {
+    const v = baselineView(), tot = E.aggregate(daily, A);
+    set('hero-rescue', 'نسبة الإنقاذ للفترة: ' + fmtPct(tot.rescueRate));
+    set('active-period-label', state.idx === null ? 'عرض إجمالي: مجموع السجلات الأربعة عشر (النسب محسوبة من المجاميع)' : 'عرض يومي: ' + dayLabel(state.idx));
+    set('kpi-prepared', fmt(v.prepared)); set('kpi-expected', fmt(v.expected)); set('kpi-sales', fmt(v.sales)); set('kpi-surplus', fmt(v.remaining));
+    set('kpi-surplus-sub', 'وجبة (تم إنقاذ ' + fmt(v.rescued) + ' منها)');
+    set('kpi-discount', fmt(v.discount)); set('kpi-donation', fmt(v.donation)); set('kpi-waste', fmt(v.waste));
+    set('kpi-waste-sub', 'نسبة الهدر من الإنتاج: ' + fmtPct(v.wasteRate));
+    set('kpi-recovery', fmtPct(v.rescueRate));
+    set('kpi-rescued-sub', 'مستردة: ' + fmt(v.rescued) + ' (بيع مخفّض + تبرع)');
+    set('fin-pre', fmt(v.preLoss) + ' ر.س'); set('fin-rev', fmt(v.recoveredRevenue) + ' ر.س'); set('fin-post', fmt(v.postLoss) + ' ر.س');
+  }
+
+‎  /* ---------- الجدول اليومي ---------- */
+  function renderTable() {
+    const tb = $('daily-tbody'); tb.replaceChildren();
+    daily.forEach((r, i) => {
+      const d = E.derive(r, A), tr = document.createElement('tr');
+      tr.className = 'cursor-pointer hover:bg-beige/40' + (state.idx === i ? ' bg-emeraldBrand/10 font-bold' : '');
+      tr.tabIndex = 0; tr.dataset.idx = i;
+      const cells = [dayLabel(i).replace(' 2026', ''), fmt(d.prepared), fmt(d.expected), fmt(d.sales), fmt(d.remaining), fmt(d.discount), fmt(d.donation), fmt(d.waste), fmtPct(d.rescueRate), r.note || '—'];
+      cells.forEach((c, j) => { const td = document.createElement('td'); td.className = 'p-2 num' + (j === 9 ? ' text-gray-500' : ''); td.textContent = c; tr.appendChild(td); });
+      const pick = () => setPeriod(i);
+      tr.addEventListener('click', pick); tr.addEventListener('keydown', e => { if (e.key === 'Enter') pick(); });
+      tb.appendChild(tr);
+    });
+    const g = E.aggregate(daily, A), tf = $('daily-tfoot'); tf.replaceChildren();
+    const tr = document.createElement('tr');
+‎    ['إجمالي الفترة', g.prepared, g.expected, g.sales, g.remaining, g.discount, g.donation, g.waste, fmtPct(g.rescueRate), ''].forEach((c, j) => {
+      const td = document.createElement('td'); td.className = 'p-2 num'; td.textContent = j === 0 || j === 8 || j === 9 ? c : fmt(c); tr.appendChild(td);
+    });
+    tf.appendChild(tr);
+  }
+
+‎  /* ---------- التوصية ---------- */
+  function renderForecast() {
+    const v = baselineView(), sp = safetyPct();
+    const isTotal = state.idx === null;
+    const targetIdx = isTotal ? daily.length : state.idx;
+    const r = E.recommend(daily, targetIdx, { safetyPct: sp });
+    set('forecast-target', isTotal ? 'عرض إجمالي: التوصية المعروضة لليوم التالي للفترة (15 أكتوبر 2026) اعتمادًا على آخر 7 أيام مسجلة.' : 'التوصية ليوم ' + dayLabel(state.idx) + ' اعتمادًا على الأيام السابقة له فقط.');
+    set('fc-expected', fmt(v.expected) + ' وجبة'); set('fc-sales', fmt(v.sales) + ' وجبة');
+    set('fc-actual-prep', isTotal ? fmt(v.prepared) + ' وجبة (إجمالي الفترة)' : fmt(v.prepared) + ' وجبة');
+    if (r.status === 'none') {
+      ['fc-rec', 'fc-surplus', 'fc-risk', 'fc-days'].forEach(id => set(id, '—')); set('fc-risk-sub', '');
+    } else {
+      set('fc-rec', fmt(r.recommended) + ' وجبة'); set('fc-surplus', fmt(r.potentialSurplus) + ' وجبة');
+      set('fc-risk', r.riskLevel); set('fc-risk-sub', 'نسبة الأيام السابقة التي بلغت مبيعاتها الكمية المقترحة أو تجاوزتها: ' + fmtPct(r.shortageRisk));
+      set('fc-days', fmt(r.daysUsed) + ' يوم');
+    }
+    set('fc-reason', r.reason);
+    const w = $('fc-warning'); w.textContent = r.warning; w.classList.toggle('hidden', !r.warning);
+    return r;
+  }
+
+‎  /* ---------- المحاكاة ---------- */
+  function readInputs() { return { prepared: $('in-prepared').value, discount: $('in-discount').value, donation: $('in-donation').value, price: $('in-price').value }; }
+  function setInputs(o) { $('in-prepared').value = o.prepared; $('in-discount').value = o.discount; $('in-donation').value = o.donation; $('in-price').value = o.price; }
+  function resetSim(resetSafety) {
+    const b = baselineView();
+    setInputs({ prepared: b.prepared, discount: b.discount, donation: b.donation, price: A.discountPrice });
+    if (resetSafety) $('in-safety').value = DEFAULT_SAFETY;
+    showInfo('');
+  }
+  function showInfo(t) { const el = $('sim-info'); el.textContent = t; el.classList.toggle('hidden', !t); }
+  function recommendedPrep() {
+    const sp = safetyPct();
+    if (state.idx === null) { const t = E.totalRecommendedPrep(daily, sp); return { qty: t.total, note: t.fallbackDays ? 'الأيام التي لا تتوفر لها بيانات سابقة (' + t.fallbackDays + ') احتفظت بالكمية المحضّرة الفعلية.' : '' }; }
+    const r = E.recommend(daily, state.idx, { safetyPct: sp });
+    return r.status === 'none' ? { qty: null, note: r.warning } : { qty: r.recommended, note: r.warning };
+  }
+  function runSim() {
+    const base = baselineView();
+    const res = E.simulate(base, readInputs(), A);
+    state.sim = res;
+    const err = $('sim-error');
+    if (!res.valid) { err.textContent = res.errors.join(' '); err.classList.remove('hidden'); } else { err.textContent = ''; err.classList.add('hidden'); }
+    renderSim(res); updateScenarioCharts(); renderMatching();
+  }
+  function renderSim(res) {
+    set('sim-view-label', viewName());
+    set('sim-form-title', 'تخصيص خطة ' + (state.idx === null ? 'إجمالي الفترة (الكمية المتبقية في خط الأساس ' + fmt(baselineView().remaining) + ' وجبة)' : 'يوم ' + dayLabel(state.idx) + ' (الكمية المتبقية في خط الأساس ' + fmt(baselineView().remaining) + ' وجبة)') + ':');
+    const tb = $('sim-tbody'); tb.replaceChildren();
+    const b = baselineView();
+    const rows = (s, d) => [
+‎      ['الكمية المحضّرة', b.prepared, s && s.prepared, d && d.prepared, fmt],
+‎      ['المبيعات', b.sales, s && s.sales, s && s.sales - b.sales, fmt],
+‎      ['الوجبات المستردة', b.rescued, s && s.rescued, d && d.rescued, fmt],
+‎      ['الهدر المتبقي', b.waste, s && s.waste, d && d.waste, fmt],
+‎      ['نسبة الإنقاذ', b.rescueRate, s && s.rescueRate, d && d.rescueRate, fmtPct],
+‎      ['الإيراد المسترد (ر.س)', b.recoveredRevenue, s && s.recoveredRevenue, d && d.recoveredRevenue, fmt],
+‎      ['الخسارة التقديرية بعد الإنقاذ (ر.س)', b.postLoss, s && s.postLoss, d && d.postLoss, fmt]
+    ];
+    const sc = res.valid ? res.scenario : null;
+    rows(sc, res.valid ? res.delta : null).forEach(r => {
+      const tr = document.createElement('tr');
+      const dv = r[3];
+      const dTxt = !res.valid ? '—' : dv === null ? 'لا ينطبق' : (dv > 0 ? '+' : '') + (r[4] === fmtPct ? dv.toFixed(2) + ' نقطة' : fmt(dv));
+      [r[0], r[4](r[1]), res.valid ? r[4](r[2]) : '—', dTxt].forEach((c, i) => { const td = document.createElement('td'); td.className = 'py-1.5' + (i === 0 ? ' font-semibold' : ''); td.textContent = c; tr.appendChild(td); });
+      tb.appendChild(tr);
+    });
+    const red = $('sim-reduction'), as = $('sim-assumptions'), cons = $('sim-conservation');
+    as.replaceChildren();
+    if (!res.valid) { red.textContent = ''; cons.textContent = 'لم تُحسب النتائج: صحّح المدخلات المذكورة.'; return; }
+    red.textContent = 'الانخفاض المطلق في الهدر: ' + fmt(res.wasteReduction) + ' وجبة' + (res.wasteReductionPct !== null ? ' (' + fmtPct(res.wasteReductionPct) + ')' : ' (لا نسبة: الهدر الأساسي صفر)');
+    res.assumptions.concat(res.lostSales > 0 ? ['تنبيه: الكمية المحضّرة المحاكاة أقل من المبيعات المسجلة؛ قد تضيع مبيعات محتملة بمقدار ' + fmt(res.lostSales) + ' وجبة.'] : [],
+      state.idx === null ? ['في عرض الإجمالي تُعامل الفترة كوحدة واحدة عند حساب المبيعات المحاكاة.'] : []).forEach(t => { const li = document.createElement('li'); li.textContent = t; as.appendChild(li); });
+    const s = res.scenario;
+    cons.textContent = 'حفظ الوجبات في السيناريو: المحضّر (' + fmt(s.prepared) + ') = مبيعات (' + fmt(s.sales) + ') + مخفّض (' + fmt(s.discount) + ') + تبرع (' + fmt(s.donation) + ') + هدر (' + fmt(s.waste) + ') ' + (res.conserved ? '✔' : '✘');
+  }
+
+‎  /* ---------- المطابقة التوضيحية ---------- */
+  function renderMatching() {
+    const qty = state.sim && state.sim.valid ? state.sim.scenario.donation : baselineView().donation;
+    set('m-qty', fmt(qty));
+    const cap = Number($('m-capacity').value), pick = Number($('m-pickup').value), hold = Number($('m-maxhold').value), safe = $('m-safe').checked;
+    const items = [
+‎      ['نوع الغذاء', true, 'كبسة دجاج مطبوخة — مقبول افتراضيًا للجهة التوضيحية'],
+‎      ['الكمية', Number.isFinite(cap) && cap >= 0 && qty <= cap, 'الكمية ' + fmt(qty) + ' مقابل طاقة افتراضية ' + (Number.isFinite(cap) ? fmt(cap) : '—') + ' وجبة'],
+‎      ['وقت الاستلام', Number.isFinite(pick) && Number.isFinite(hold) && pick >= 0 && pick <= hold, 'الاستلام بعد ' + (Number.isFinite(pick) ? pick : '—') + ' ساعة مقابل حد آمن ' + (Number.isFinite(hold) ? hold : '—') + ' ساعة'],
+‎      ['أهلية الغذاء من ناحية السلامة', safe, safe ? 'مؤكدة (افتراض مُدخل)' : 'غير مؤكدة — لا يُنصح بالتبرع'],
+    ];
+    const ul = $('m-results'); ul.replaceChildren();
+    items.forEach(([name, ok, why]) => {
+      const li = document.createElement('li'); li.className = 'flex items-start gap-2';
+      const ic = document.createElement('span'); ic.textContent = ok ? '✔' : '✘'; ic.className = ok ? 'text-emeraldBrand font-black' : 'text-red-700 font-black';
+      const tx = document.createElement('span'); tx.textContent = name + ': ' + why;
+      li.append(ic, tx); ul.appendChild(li);
+    });
+    const li = document.createElement('li'); li.className = 'flex items-start gap-2 text-gray-500';
+    const ic = document.createElement('span'); ic.textContent = '–'; const tx = document.createElement('span'); tx.textContent = 'المسافة: غير متوفرة (لا توجد بيانات موثوقة، ولا تدخل في الفحص)';
+    li.append(ic, tx); ul.appendChild(li);
+    const allOk = items.every(i => i[1]);
+    set('m-summary', allOk ? 'المعايير المُدخلة مستوفاة في هذا المثال التوضيحي. لا يُرسل النظام أي طلب أو إشعار.' : 'أحد المعايير غير مستوفٍ في هذا المثال التوضيحي.');
+  }
+
+‎  /* ---------- الرسوم البيانية ---------- */
+  const C = { navy: '#18334A', forest: '#245B45', sage: '#A8BFA5', emerald: '#16856B', amber: '#D99A32' };
+  function chartLabels() { return daily.map((d, i) => E.dayNameOf(d.date) + ' ' + Number(d.date.slice(8))); }
+  function onChartClick(chart, evt) {
+    const pts = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, true);
+    if (pts.length) setPeriod(pts[0].index);
+  }
+  const common = extra => Object.assign({ responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } }, tooltip: { rtl: true, textDirection: 'rtl', titleFont: { family: 'Cairo' }, bodyFont: { family: 'Cairo' } } } }, extra);
+  function initCharts() {
+    if (!window.Chart) { document.querySelectorAll('.canvas-box').forEach(b => { b.textContent = 'تعذّر تحميل مكتبة الرسوم (Chart.js). تحقق من الاتصال بالإنترنت.'; b.className += ' text-xs text-gray-500'; }); return; }
+    Chart.defaults.font.family = 'Cairo';
+    const labels = chartLabels(), recs = daily.map(d => E.derive(d, A));
+    const yTitle = t => ({ title: { display: true, text: t, font: { family: 'Cairo' } }, beginAtZero: true });
+    const c1 = new Chart($('chartPreparedSales'), {
+      type: 'line', data: { labels, datasets: [
+        { label: 'الكمية المحضّرة', data: recs.map(d => d.prepared), borderColor: C.navy, backgroundColor: C.navy, tension: .2 },
+        { label: 'الطلب المتوقع', data: recs.map(d => d.expected), borderColor: C.amber, backgroundColor: C.amber, tension: .2, borderDash: [5, 4] },
+        { label: 'المبيعات الفعلية', data: recs.map(d => d.sales), borderColor: C.forest, backgroundColor: C.forest, tension: .2 }] },
+      options: common({ scales: { y: yTitle('وجبة'), x: { ticks: { maxRotation: 60, minRotation: 45, font: { size: 10 } } } }, onClick: (e) => onChartClick(c1, e) })
+    });
+    const c2 = new Chart($('chartSurplusDist'), {
+      type: 'bar', data: { labels, datasets: [
+        { label: 'البيع المخفّض', data: recs.map(d => d.discount), backgroundColor: C.emerald, borderColor: C.navy, borderWidth: 0 },
+        { label: 'التبرع الغذائي', data: recs.map(d => d.donation), backgroundColor: C.sage, borderColor: C.navy, borderWidth: 0 },
+        { label: 'الهدر الغذائي', data: recs.map(d => d.waste), backgroundColor: C.amber, borderColor: C.navy, borderWidth: 0 }] },
+      options: common({ scales: { x: { stacked: true, ticks: { maxRotation: 60, minRotation: 45, font: { size: 10 } } }, y: Object.assign({ stacked: true }, yTitle('وجبة')) }, onClick: (e) => onChartClick(c2, e) })
+    });
+    const c3 = new Chart($('chartScenarioComparison'), {
+      type: 'bar', data: { labels: ['الهدر الغذائي', 'الوجبات المستردة'], datasets: [{ label: 'خط الأساس', data: [0, 0], backgroundColor: C.amber }, { label: 'السيناريو المحاكى', data: [0, 0], backgroundColor: C.emerald }] },
+      options: common({ scales: { y: yTitle('وجبة') } })
+    });
+    const c4 = new Chart($('chartFinancialImpact'), {
+      type: 'bar', data: { labels: ['الخسارة التقديرية قبل الإنقاذ', 'الإيراد المسترد', 'الخسارة التقديرية بعد الإنقاذ'], datasets: [{ label: 'خط الأساس', data: [0, 0, 0], backgroundColor: C.navy }, { label: 'السيناريو المحاكى', data: [0, 0, 0], backgroundColor: C.emerald }] },
+      options: common({ scales: { y: yTitle('ر.س'), x: { ticks: { font: { size: 10 } } } } })
+    });
+    Object.assign(state.charts, { c1, c2, c3, c4 });
+  }
+  function updateSelectionCharts() {
+    const { c1, c2 } = state.charts; if (!c1) return;
+    const sel = i => state.idx === i;
+    c1.data.datasets.forEach(ds => { ds.pointRadius = daily.map((_, i) => sel(i) ? 7 : 3); ds.pointBorderWidth = daily.map((_, i) => sel(i) ? 3 : 1); });
+    c2.data.datasets.forEach(ds => { ds.borderWidth = daily.map((_, i) => sel(i) ? 3 : 0); });
+    c1.update('none'); c2.update('none');
+  }
+  function updateScenarioCharts() {
+    const { c3, c4 } = state.charts; if (!c3) return;
+    const b = baselineView(), s = state.sim && state.sim.valid ? state.sim.scenario : null;
+    c3.data.datasets[0].data = [b.waste, b.rescued]; c3.data.datasets[1].data = s ? [s.waste, s.rescued] : [null, null];
+    c4.data.datasets[0].data = [b.preLoss, b.recoveredRevenue, b.postLoss]; c4.data.datasets[1].data = s ? [s.preLoss, s.recoveredRevenue, s.postLoss] : [null, null, null];
+    c3.update(); c4.update();
+  }
+
+‎  /* ---------- اختيار الفترة ---------- */
+  function setPeriod(i) {
+    state.idx = i;
+    $('period-selector').value = i === null ? 'total' : String(i);
+    renderKpis(); renderTable(); renderForecast(); resetSim(false); runSim(); updateSelectionCharts();
+  }
+
+‎  /* ---------- المساعد ---------- */
+  function addMsg(text, mine) {
+    const body = $('assistant-chat-body'), div = document.createElement('div');
+    div.className = mine ? 'bg-forest/10 p-2.5 rounded-xl text-navy font-semibold' : 'bg-white p-2.5 rounded-xl shadow-sm border border-sage/30 text-navy font-medium';
+    div.textContent = (mine ? 'أنت: ' : 'المساعد: ') + text; // textContent فقط — لا innerHTML
+    body.appendChild(div); body.scrollTop = body.scrollHeight;
+  }
+  function sendQuery() {
+    const input = $('assistant-input'), q = input.value.trim();
+    if (!q) return;
+    addMsg(q, true); input.value = '';
+    addMsg(E.assistantAnswer(q, { daily, A, idx: state.idx, sim: state.sim, safetyPct: safetyPct() }), false);
+  }
+  function toggleAssistant(open) {
+    const box = $('assistant-box'); const show = open === undefined ? box.classList.contains('hidden') : open;
+    box.classList.toggle('hidden', !show); $('assistant-toggle').setAttribute('aria-expanded', String(show));
+    if (show) { fitAssistant(); $('assistant-input').focus({ preventScroll: true }); }
+  }
+  function fitAssistant() { // يضبط الموضع والارتفاع عند تغيّر حجم الشاشة أو ظهور لوحة المفاتيح على الجوال
+    const vv = window.visualViewport, box = $('assistant-box');
+    const h = vv ? vv.height : window.innerHeight;
+    const kb = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+    box.style.bottom = (96 + kb) + 'px';
+    box.style.maxHeight = Math.max(160, h - 96 - 12) + 'px';
+  }
+
+‎  /* ---------- التهيئة ---------- */
+  function init() {
+    const sel = $('period-selector');
+    const o0 = document.createElement('option'); o0.value = 'total'; o0.textContent = 'إجمالي الفترة (14 يومًا)'; sel.appendChild(o0);
+    daily.forEach((d, i) => { const o = document.createElement('option'); o.value = String(i); o.textContent = dayLabel(i); sel.appendChild(o); });
+    sel.addEventListener('change', () => setPeriod(sel.value === 'total' ? null : Number(sel.value)));
+    $('in-safety').value = DEFAULT_SAFETY;
+    $('in-safety').addEventListener('input', () => { renderForecast(); });
+    $('sim-form').addEventListener('submit', e => { e.preventDefault(); runSim(); });
+    $('btn-reset').addEventListener('click', () => { resetSim(true); renderForecast(); runSim(); });
+    $('btn-apply-rec').addEventListener('click', () => {
+      const r = recommendedPrep();
+      if (r.qty === null) { showInfo(r.note); return; }
+      const b = baselineView(), sales = Math.min(r.qty, b.sales), remaining = r.qty - sales;
+      const disc = Math.min(b.discount, remaining), don = Math.min(b.donation, remaining - disc);
+      setInputs({ prepared: r.qty, discount: disc, donation: don, price: $('in-price').value || A.discountPrice });
+      showInfo('طُبّقت توصية فَيْض (' + fmt(r.qty) + ' وجبة). عُدّل البيع المخفّض والتبرع ليبقيا ضمن الفائض المتاح (' + fmt(remaining) + ' وجبة) دون تجاوزه. ' + (r.note || ''));
+      runSim();
+    });
+    ['m-capacity', 'm-pickup', 'm-maxhold', 'm-safe'].forEach(id => $(id).addEventListener('input', renderMatching));
+    $('menu-toggle').addEventListener('click', () => { const n = $('mobile-nav'); const open = n.classList.toggle('hidden') === false; $('menu-toggle').setAttribute('aria-expanded', String(open)); });
+    $('mobile-nav').addEventListener('click', e => { if (e.target.tagName === 'A') { $('mobile-nav').classList.add('hidden'); $('menu-toggle').setAttribute('aria-expanded', 'false'); } });
+    $('assistant-toggle').addEventListener('click', () => toggleAssistant());
+    $('assistant-close').addEventListener('click', () => toggleAssistant(false));
+    $('assistant-form').addEventListener('submit', e => { e.preventDefault(); sendQuery(); });
+    window.addEventListener('resize', fitAssistant);
+    if (window.visualViewport) { window.visualViewport.addEventListener('resize', fitAssistant); window.visualViewport.addEventListener('scroll', fitAssistant); }
+    const ul = $('assumption-list');
+‎    [['تكلفة إنتاج الوجبة', A.mealCost + ' ر.س'], ['سعر البيع الأساسي الكامل', A.fullPrice + ' ر.س'], ['سعر البيع المخفّض', A.discountPrice + ' ر.س']].forEach(([k, v]) => { const li = document.createElement('li'); li.textContent = k + ': ' + v; ul.appendChild(li); });
+‎    ['المتبقي = المحضّر − المبيعات الفعلية.', 'الهدر = المتبقي − البيع المخفّض − التبرع.', 'نسبة الإنقاذ = (البيع المخفّض + التبرع) ÷ المتبقي.',
+‎      'الخسارة قبل الإنقاذ = المتبقي × تكلفة الوجبة.', 'الإيراد المسترد = البيع المخفّض × السعر المخفّض.', 'الخسارة بعد الإنقاذ وفق النموذج = الخسارة قبل الإنقاذ − الإيراد المسترد.']
+      .forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+    addMsg('أهلًا بك! أنا مساعد تجريبي يعتمد على قواعد محلية وبيانات اللوحة (لا يتصل بنموذج ذكاء اصطناعي). اسألني مثلًا: كم بلغت كمية الهدر؟ ما اليوم الأعلى في الهدر؟ ما نسبة الإنقاذ؟ ماذا تغير في المحاكاة؟', false);
+    renderReconcile(); initCharts(); setPeriod(null);
+    window.__fayd = { state, setPeriod }; // لأغراض الاختبار
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+</script>
+</body>
+</html>
